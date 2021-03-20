@@ -2,13 +2,10 @@
 	Universal virtual DTH
   	Copyright 2016 Mike Maxwell
 
-        Modded by Scott Barton to add Smoke, Water, Sound
-        Lines between the //SB and //END SB are the lines I added/modified
-        
-        Rescued back into GitHub by CultusMechanicus 1/4/18
-        (does that count as 'distribution' for the license below? Meh...)
-    
-    1.0.5.  2016-08-29  added sensor and actuator capabilities per Alex
+	1.0.7	2016-09-22	added smoke, water and sound thanks Scott
+    					added not used option to each device tile
+                        fixed bug in illuminance not working
+    1.0.5	2016-08-29  added sensor and actuator capabilities per Alex
     1.0.4	2016-05-21	added LUX capability
     1.0.3	2016-05-18	added optional auto off
     1.0.2	2016-05-15	ignore duplicate input requests
@@ -26,7 +23,7 @@
 
 
 metadata {
-	definition (name: "UVDT", namespace: "Scott_Barton", author: "scott barton") {
+		definition (name: "uDTH", namespace: "MikeMaxwell", author: "mike maxwell") {
 		
 	    capability "Sensor"
 	    capability "Actuator"
@@ -40,12 +37,9 @@ metadata {
         capability "Presence Sensor"		//"present", "not present"
         capability "Acceleration Sensor"	//"active", "inactive"
         capability "Illuminance Measurement"
-
-    //SB
         capability "Smoke Detector"    //"detected", "clear", "tested"
         capability "Water Sensor"      //"dry", "wet"
         capability "Sound Sensor"      //"detected", "not detected"
-    //END SB
         
         //both
         capability "Door Control"			//listen for "open", "close" respond with "open" "closed"
@@ -63,7 +57,7 @@ metadata {
         def d
         //paragraph input
         input(
-            title			: "UVDT version: ${getVersion()}"
+            title			: "uDTH version: ${getVersion()}"
             ,description	: null
             ,type			: "paragraph"
         )
@@ -121,10 +115,10 @@ metadata {
            	,title			: buildTitle(d,s1,s2)
            	,type			: "enum"
            	,options		: buildOptions(d,s1,s2)
-           	,description	: contactOn ?: "Not Used, Tap to enable..."
+           	,description	: contactOn ?: "Not Used"
         )        
 
-	d = "Motion"
+		d = "Motion"
         s1 = "active"
         s2 = "inactive"
 		input( 
@@ -132,11 +126,9 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
             ,options		: buildOptions(d,s1,s2)
-            ,description	: motionOn ?: "Not Used, Tap to enable..."            
+            ,description	: motionOn ?: "Not Used"            
         )
         
-
-    //SB
         d = "Smoke"
         s1 = "detected"
         s2 = "clear"
@@ -145,7 +137,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
             ,options		: buildOptions(d,s1,s2)
-            ,description	: smokeOn ?: "Not Used, Tap to enable..."            
+            ,description	: smokeOn ?: "Not Used"            
         )
         
         d = "Water"
@@ -156,7 +148,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
             ,options		: buildOptions(d,s1,s2)
-            ,description	: waterOn ?: "Not Used, Tap to enable..."            
+            ,description	: waterOn ?: "Not Used"            
         )
         
         d = "Sound"
@@ -169,9 +161,7 @@ metadata {
             ,options		: buildOptions(d,s1,s2)
             ,description	: soundOn ?: "Not Used, Tap to enable..."            
         )
-    //END SB
-
-
+    
         d = "Presence"
         s1 = "present"
         s2 = "not present"
@@ -180,7 +170,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
           	,options		: buildOptions(d,s1,s2)
-            ,description	: presenceOn ?: "Not Used, Tap to enable..." 
+            ,description	: presenceOn ?: "Not Used" 
         )
         
         d = "Door"
@@ -191,7 +181,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
             ,options		: buildOptions(d,s1,s2)
-            ,description	: doorOn ?: "Not Used, Tap to enable..." 
+            ,description	: doorOn ?: "Not Used" 
         )
         d = "Acceleration"
         s1 = "active"
@@ -201,7 +191,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
           	,options		: buildOptions(d,s1,s2)
-            ,description	: accelOn ?: "Not Used, Tap to enable..."  
+            ,description	: accelOn ?: "Not Used"
         )
         d = "Illuminance"
         s1 = "0 Lux"
@@ -211,7 +201,7 @@ metadata {
             ,title			: buildTitle(d,s1,s2)
             ,type			: "enum"
           	,options		: buildOptions(d,s1,s2)
-            ,description	: accelOn ?: "Not Used, Tap to enable..."  
+            ,description	: luxOn ?: "Not Used"
         )        
     }
   
@@ -221,7 +211,7 @@ metadata {
 	// tile definitions
 	tiles (scale:1) {
     	multiAttributeTile(name:"switch", type: "generic", width: 6, height: 2, canChangeIcon: true){
-			tileAttribute ("device.UVDT", key: "PRIMARY_CONTROL") {
+			tileAttribute ("device.uDTH", key: "PRIMARY_CONTROL") {
 				attributeState "on", label: '${name}', action: "localOff", icon: "st.switches.switch.on", backgroundColor: "#53a7c0"
 				attributeState "off", label: '${name}', action: "localOn", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			}
@@ -236,29 +226,22 @@ metadata {
             state "inactive", label:'${name}', backgroundColor: "#ffffff", icon:"st.motion.motion.inactive" 
             state "active", label:'${name}', backgroundColor: "#53a7c0", icon:"st.motion.motion.active" 
         }
-
-    //SB
         standardTile("smoke", "device.smoke", inactiveLabel: false, height:2, width:2, canChangeIcon: false) {
             state "default", label: "smoke\nnot used" //, icon:"st.alarm.smoke.clear"
             state "clear", label:'${name}', backgroundColor: "#ffffff", icon:"st.alarm.smoke.clear" 
             state "detected", label:'${name}', backgroundColor: "#e86d13", icon:"st.alarm.smoke.smoke" 
         }
-        
         standardTile("water", "device.water", inactiveLabel: false, height:2, width:2, canChangeIcon: false) {
             state "default", label: "water\nnot used" //, icon:"st.alarm.water.dry"
             state "dry", label:'${name}', backgroundColor: "#ffffff", icon:"st.alarm.water.dry" 
             state "wet", label:'${name}', backgroundColor: "#53a7c0", icon:"st.alarm.water.wet" 
         }
-        
         standardTile("sound", "device.sound", inactiveLabel: false, height:2, width:2, canChangeIcon: false) {
             state "default", label: "sound\nnot used" //, icon:"st.quirky.spotter.quirky-spotter-sound-off"
             state "not detected", label:'${name}', backgroundColor: "#ffffff", icon:"st.quirky.spotter.quirky-spotter-sound-off" 
             state "detected", label:'${name}', backgroundColor: "#53a7c0", icon:"st.quirky.spotter.quirky-spotter-sound-on" 
         }
-    //END SB
-
-
-           standardTile("present", "device.presence", inactiveLabel: false, height:2, width:2, canChangeIcon: false) {
+        standardTile("present", "device.presence", inactiveLabel: false, height:2, width:2, canChangeIcon: false) {
             state "default", label: "presence\nnot used"
             state "not present", label:'${name}', backgroundColor: "#ffffff", icon:"st.presence.tile.presence-default" 
             state "present", label:'${name}', backgroundColor: "#53a7c0", icon:"st.presence.tile.presence-default" 
@@ -279,7 +262,6 @@ metadata {
             state "bright", label:'${name}', backgroundColor: "#ecf23a", icon:"st.illuminance.illuminance.bright" 
         }
         main(["switch"])
-      //SB - Added "smoke","water","sound",
         details(["switch","contact","motion","smoke","water","sound","present","door","accel","lux"])
  	}
 }
@@ -318,51 +300,46 @@ def buildOptions(d,s1,s2){
 	def options = []
     options.add(["1":"when ${sOn} set ${d} to '${s1}'\nwhen ${sOff} set ${d} to '${s2}'"])
     options.add(["0":"when ${sOn} set ${d} to '${s2}'\nwhen ${sOff} set ${d} to '${s1}'"])
+    options.add(["-1":"Not Used"])
 	return options
 }
 
 def syncDevices(cmd){
-	if (cmd == null) cmd = device.currentValue("UVDT") == "on" ? "1" : "0"
+	if (cmd == null) cmd = device.currentValue("uDTH") == "on" ? "1" : "0"
     //log.debug "cmd: ${cmd}"
-	if (contactOn != null){
+	if (contactOn in ["0","1"]){
 		if (contactOn == cmd) sendEvent(name: "contact", value: "open")			//"when on send 'open'\nwhen off send 'closed'"
         else sendEvent(name: "contact", value: "closed")						//"when on send 'closed'\nwhen off send 'open'"
     } else sendEvent(name: "contact", value: null, displayed	: false)
-	if (motionOn != null){
+	if (motionOn in ["0","1"]){
 		if (motionOn == cmd) sendEvent(name: "motion", value: "active")			//"when on send 'active'\nwhen off send 'inactive'"
         else sendEvent(name: "motion", value: "inactive")						//"when on send 'inactive'\nwhen off send 'active'"
     } else sendEvent(name: "motion", value: null, displayed	: false)
-
-     //SB
-       if (smokeOn != null){
+    if (smokeOn in ["0","1"]){
 		if (smokeOn == cmd) sendEvent(name: "smoke", value: "detected")			//"when on send 'detected'\nwhen off send 'clear'"
         else sendEvent(name: "smoke", value: "clear")						//"when on send 'clear'\nwhen off send 'detected'"
     } else sendEvent(name: "smoke", value: null, displayed	: false)
-    
-    if (waterOn != null){
+    if (waterOn in ["0","1"]){
 		if (waterOn == cmd) sendEvent(name: "water", value: "wet")			//"when on send 'wet'\nwhen off send 'dry'"
         else sendEvent(name: "water", value: "dry")						//"when on send 'dry'\nwhen off send 'wet'"
     } else sendEvent(name: "water", value: null, displayed	: false)
-     
-     if (soundOn != null){
+    if (soundOn in ["0","1"]){
 		if (soundOn == cmd) sendEvent(name: "sound", value: "detected")			//"when on send 'detected'\nwhen off send 'not detected'"
         else sendEvent(name: "sound", value: "not detected")						//"when on send 'not detected'\nwhen off send 'detected'"
     } else sendEvent(name: "sound", value: null, displayed	: false) 
-     //END SB
-
-	if (presenceOn != null){
+	if (presenceOn in ["0","1"]){
 		if (presenceOn == cmd) sendEvent(name: "presence", value: "present")		//"when on send 'present'\nwhen off send 'not present'"
         else sendEvent(name: "presence", value: "not present")					//"when on send 'not present'\nwhen off send 'present'"
     } else sendEvent(name: "presence", value: null, displayed	: false)
-	if (doorOn != null){
+	if (doorOn in ["0","1"]){
 		if (doorOn == cmd) sendEvent(name: "door", value: "open")			//"when on send 'active'\nwhen off send 'inactive'"
         else sendEvent(name: "door", value: "closed")						//"when on send 'inactive'\nwhen off send 'active'"
     } else sendEvent(name: "door", value: null, displayed	: false)
-	if (accelOn != null){
+	if (accelOn in ["0","1"]){
 		if (accelOn == cmd) sendEvent(name: "acceleration", value: "active")
         else sendEvent(name: "acceleration", value: "inactive")				
     } else sendEvent(name: "acceleration", value: null, displayed	: false)
-    if (luxOn != null){
+    if (luxOn in ["0","1"]){
     	if (luxOn == cmd){
         	sendEvent(name: "illuminance", value: 50)
         	sendEvent(name: "lux", value: "bright", displayed	: false)
@@ -377,10 +354,9 @@ def syncDevices(cmd){
 }
 
 def localOn() {
-	if (device.currentValue("UVDT") != "on"){
+	if (device.currentValue("uDTH") != "on"){
     	log.info "on request: OK"
-		sendEvent(name: "UVDT", value: "on" ,displayed: false)
-        sendEvent(name: "switch", value: "on" ,displayed: false)
+		sendEvent(name: "uDTH", value: "on" ,displayed: false)
     	syncDevices("1")
         if (autoOff) runIn(autoOff.toInteger(),localOff)
     } else {
@@ -389,10 +365,9 @@ def localOn() {
 }
 
 def localOff() {
-	if (device.currentValue("UVDT") != "off"){
+	if (device.currentValue("uDTH") != "off"){
     	log.info "off request: OK"
-		sendEvent(name: "UVDT", value: "off" ,displayed: false)
-        sendEvent(name: "switch", value: "off" ,displayed: false)
+		sendEvent(name: "uDTH", value: "off" ,displayed: false)
     	syncDevices("0")
     } else {
     	log.info "off request: duplicate, ignored"
@@ -400,7 +375,7 @@ def localOff() {
 }
 
 def getVersion(){
-	return "1.0.69"
+	return "1.0.7"
 }
 
 //capture preference changes
